@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claim Sort: Abiogenesis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f1318;
+    --panel: #171d25;
+    --panel-2: #1e2630;
+    --edge: #2c3644;
+    --text: #e9e5dd;
+    --muted: #a3adbb;
+    --teal: #3cc9b5;
+    --gold: #f2b84b;
+    --ember: #ff7a3d;
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: dark; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 56px; }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4.5vw, 2.7rem);
+    line-height: 1.12;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .sub { color: var(--muted); margin: 0 0 18px; max-width: 62ch; }
+
+  .how {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    max-width: 70ch;
+  }
+  .how p { margin: 0 0 6px; }
+  .how p:last-child { margin: 0; color: var(--muted); }
+
+  .status {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--ink);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--edge);
+    margin-bottom: 16px;
+    font-weight: 500;
+    min-height: 3.2em;
+    display: flex; align-items: center;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.25rem;
+    margin: 0 0 4px;
+  }
+  .count { color: var(--muted); font-weight: 400; font-family: var(--sans); font-size: .95rem; }
+
+  /* Card pool */
+  .pool {
+    background: var(--panel);
+    border: 1px dashed var(--edge);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 22px;
+  }
+  .pool-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pool-drop {
+    font: inherit; font-size: .9rem; color: var(--muted);
+    background: transparent; border: 1px solid var(--edge); border-radius: 8px;
+    padding: 6px 12px; cursor: pointer;
+  }
+  .pool-drop:hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
+  .pool-drop:disabled { opacity: .45; cursor: default; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+  .empty { color: var(--muted); margin: 6px 2px; }
+
+  /* Cards */
+  .card {
+    display: block; width: 100%; text-align: left;
+    font: inherit; color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--edge);
+    border-left-width: 4px;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .card:hover { border-color: var(--muted); }
+  .card[aria-pressed="true"] {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+    background: #2a2a22;
+  }
+  .card:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .card .why { display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--edge); font-size: .9rem; color: var(--muted); }
+  .card .verdict { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 2px; }
+  .card.ok { border-left-color: var(--teal); }
+  .card.ok .verdict { color: var(--teal); }
+  .card.bad { border-left-color: var(--ember); background: #2b1f1a; }
+  .card.bad .verdict { color: var(--ember); }
+
+  /* Bins */
+  .bins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+  .bin {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-top: 5px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 220px;
+  }
+  .bin h2 { color: var(--accent); }
+  .bin .def { color: var(--muted); font-size: .92rem; margin: 0; }
+  .place {
+    font: inherit; font-weight: 600; color: var(--ink);
+    background: var(--accent); border: 0; border-radius: 8px;
+    padding: 9px 12px; cursor: pointer;
+  }
+  .place:disabled { background: var(--edge); color: var(--muted); cursor: default; }
+  .place:not(:disabled):hover { filter: brightness(1.1); }
+  .place:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .bin .cards { grid-template-columns: 1fr; }
+  .bin.t { --accent: var(--teal); }
+  .bin.h { --accent: var(--gold); }
+  .bin.n { --accent: var(--ember); }
+  .bin .card { border-left-color: var(--accent); }
+  .bin .card.ok { border-left-color: var(--teal); }
+  .bin .card.bad { border-left-color: var(--ember); }
+
+  /* Actions */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    font: inherit; font-weight: 600; border-radius: 8px; padding: 11px 20px; cursor: pointer;
+    border: 1px solid var(--edge); background: var(--panel-2); color: var(--text);
+  }
+  .btn.primary { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .result { margin-top: 16px; font-family: var(--serif); font-size: 1.2rem; }
+  .result.done { color: var(--teal); }
+
+  @media (max-width: 820px) { .bins { grid-template-columns: 1fr; } .bin { min-height: 0; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Claim sort: what kind of claim is it?</h1>
+  <p class="sub">Abiogenesis practice. This activity is not graded, so use it to find out what you still need to review.</p>
+
+  <div class="how">
+    <p>Scientists treat different kinds of claims differently. Sort each claim by what it would take to check it.</p>
+    <p>Select a card, then select the category button for the bin you want. To move a card, select it again and choose a new bin.</p>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+
+  <section class="pool" aria-labelledby="poolTitle">
+    <div class="pool-head">
+      <h2 id="poolTitle">Unsorted claims <span class="count" id="poolCount"></span></h2>
+      <button class="pool-drop" id="returnBtn" type="button">Return selected card to this pile</button>
+    </div>
+    <div class="cards" id="pool"></div>
+  </section>
+
+  <div class="bins" id="bins"></div>
+
+  <div class="actions">
+    <button class="btn primary" id="checkBtn" type="button">Check my sort</button>
+    <button class="btn" id="resetBtn" type="button">Start over</button>
+  </div>
+  <div class="result" id="result" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  var CATS = [
+    { id: "T", cls: "t", name: "Testable now",
+      def: "You could run an experiment or take a measurement today and get a result." },
+    { id: "H", cls: "h", name: "Inferred about the past",
+      def: "About something nobody can watch happen. Evidence and reasoning support it, but it was not directly observed." },
+    { id: "N", cls: "n", name: "Not testable",
+      def: "An opinion, a statement of purpose, or a claim built so that no result could ever show it wrong." }
+  ];
+  var CAT_NAME = {}; CATS.forEach(function (c) { CAT_NAME[c.id] = c.name; });
+
+  var CARDS = [
+    // Testable now
+    { id: 1, cat: "T", text: "Maggots appear on meat only when flies can reach it.",
+      why: "You can set up jars, cover some, and count maggots. Redi ran exactly this kind of test." },
+    { id: 2, cat: "T", text: "Boiled broth in an intact swan-neck flask stays free of microbes.",
+      why: "Anyone can repeat this and observe the result. Pasteur did, and the broth stayed clear." },
+    { id: 3, cat: "T", text: "Lipid molecules, with a water-loving head and a water-hating tail, self-assemble into spheres in water.",
+      why: "This is a property of lipids you can observe in a lab right now." },
+    { id: 4, cat: "T", text: "Giving energy to simple gases like those thought to be on early Earth produces amino acids.",
+      why: "The Miller-Urey experiment did this, and it can be repeated. Note that it tests what chemistry can do, not what happened billions of years ago." },
+    { id: 5, cat: "T", text: "Some RNA molecules can act as catalysts, speeding up reactions the way enzymes do.",
+      why: "Cech and Altman showed this in the lab, and reaction speeds can be measured." },
+    { id: 6, cat: "T", text: "Clay surfaces can bring RNA building blocks together so they link up.",
+      why: "A 2009 lab study tested this. It shows what is possible, and the lab result itself is something anyone can check." },
+
+    // Inferred about the past
+    { id: 7, cat: "H", text: "RNA came before DNA as the first hereditary molecule.",
+      why: "Nobody can observe the earliest life. This is inferred from RNA being simpler than DNA and able to catalyze reactions. It is called the RNA World hypothesis for a reason." },
+    { id: 8, cat: "H", text: "Early Earth's atmosphere contained the gases used in the Miller-Urey experiment.",
+      why: "We cannot sample the air from billions of years ago. Scientists infer past conditions from evidence, which is why the experiment is described as using gases thought to be present." },
+    { id: 9, cat: "H", text: "The first living things were far simpler than any modern bacterium.",
+      why: "This is reasoned from how complexity builds up in small steps. It can be supported by evidence, but the first life cannot be observed." },
+    { id: 10, cat: "H", text: "Modern cell chemistry still preserves traces of the very first metabolic pathways.",
+      why: "Researchers study today's metabolism to work out what earlier pathways looked like. It is an inference about the past, not something watched happening." },
+    { id: 11, cat: "H", text: "Early oceans held a \"primordial soup\" of organic molecules.",
+      why: "Those oceans are gone, so this is a historical claim supported by experiments and reasoning rather than by direct sampling." },
+    { id: 12, cat: "H", text: "Life first arose through slow, gradual chemical steps over a long period of time.",
+      why: "This is a plausible account of the past, not a proven one. The video says there is no single accepted theory yet." },
+
+    // Not testable
+    { id: 13, cat: "N", text: "A \"life force\" in broth is destroyed by long boiling, which is why no microbes appear.",
+      why: "There is no way to measure a life force, so no result could ever contradict it. This is the kind of reply Needham gave to Spallanzani." },
+    { id: 14, cat: "N", text: "Life appeared on Earth because the planet was meant to produce it.",
+      why: "This assigns a purpose, and no observation could confirm or refute a purpose. Science asks how and under what conditions, not what something was meant for." },
+    { id: 15, cat: "N", text: "The origin of life is the most fascinating question in science.",
+      why: "This is an opinion. People can reasonably disagree, and no experiment could settle it." },
+    { id: 16, cat: "N", text: "The molecules in early oceans joined together because they wanted to become alive.",
+      why: "Molecules do not have goals. Describing chemistry as wanting something is purpose language, and it cannot be tested." },
+    { id: 17, cat: "N", text: "The Miller-Urey experiment was the most important experiment ever performed.",
+      why: "This is a value judgment. You can test what the experiment showed, but not whether it was the most important." },
+    { id: 18, cat: "N", text: "Studying the origin of life matters more than studying evolution.",
+      why: "This is an opinion about importance. Nothing you could measure would prove it right or wrong." }
+  ];
+
+  var loc, selected, checked, lastFocus, summary;
+
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  var order;
+  function init() {
+    loc = {}; selected = null; checked = false; lastFocus = null; summary = "";
+    CARDS.forEach(function (c) { loc[c.id] = "pool"; });
+    order = shuffle(CARDS.map(function (c) { return c.id; }));
+    document.getElementById("result").textContent = "";
+    document.getElementById("result").className = "result";
+    render();
+  }
+
+  function byId(id) { return CARDS.filter(function (c) { return c.id === id; })[0]; }
+
+  function cardEl(c) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "card";
+    b.dataset.id = c.id;
+    b.setAttribute("aria-pressed", selected === c.id ? "true" : "false");
+    var where = loc[c.id] === "pool" ? "unsorted" : "in " + CAT_NAME[loc[c.id]];
+    b.setAttribute("aria-label", c.text + " (" + where + ")" + (checked && loc[c.id] !== "pool" ? (loc[c.id] === c.cat ? " Correct." : " Not quite.") : ""));
+    var html = "";
+    if (checked && loc[c.id] !== "pool") {
+      var ok = loc[c.id] === c.cat;
+      b.className += ok ? " ok" : " bad";
+      html += '<span class="verdict">' + (ok ? "Correct" : "Not quite. Think about what it would take to check this.") + "</span>";
+    }
+    var span = document.createElement("span");
+    span.textContent = c.text;
+    b.innerHTML = html;
+    b.appendChild(span);
+    if (checked && loc[c.id] !== "pool") {
+      var w = document.createElement("span");
+      w.className = "why";
+      w.textContent = (loc[c.id] === c.cat ? "" : "Belongs in \u201C" + CAT_NAME[c.cat] + ".\u201D ") + c.why;
+      b.appendChild(w);
+    }
+    b.addEventListener("click", function () {
+      selected = (selected === c.id) ? null : c.id;
+      lastFocus = c.id;
+      render();
+    });
+    return b;
+  }
+
+  function render() {
+    var pool = document.getElementById("pool");
+    pool.innerHTML = "";
+    var inPool = order.filter(function (id) { return loc[id] === "pool"; });
+    inPool.forEach(function (id) { pool.appendChild(cardEl(byId(id))); });
+    if (!inPool.length) {
+      var e = document.createElement("p");
+      e.className = "empty";
+      e.textContent = "Every claim is sorted. Check your sort when you are ready.";
+      pool.appendChild(e);
+    }
+    document.getElementById("poolCount").textContent = "(" + inPool.length + " left)";
+
+    var bins = document.getElementById("bins");
+    bins.innerHTML = "";
+    CATS.forEach(function (cat) {
+      var sec = document.createElement("section");
+      sec.className = "bin " + cat.cls;
+      sec.setAttribute("aria-label", cat.name);
+      var h = document.createElement("h2"); h.textContent = cat.name;
+      var d = document.createElement("p"); d.className = "def"; d.textContent = cat.def;
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "place";
+      btn.textContent = "Place card in \u201C" + cat.name + "\u201D";
+      btn.disabled = selected === null;
+      btn.addEventListener("click", function () {
+        if (selected === null) return;
+        var id = selected;
+        loc[id] = cat.id; selected = null; lastFocus = id;
+        if (checked) { /* editing after a check clears verdicts until the next check */ checked = false; summary = ""; document.getElementById("result").textContent = ""; document.getElementById("result").className = "result"; }
+        render();
+      });
+      var cards = document.createElement("div"); cards.className = "cards";
+      order.filter(function (id) { return loc[id] === cat.id; })
+           .forEach(function (id) { cards.appendChild(cardEl(byId(id))); });
+      sec.appendChild(h); sec.appendChild(d); sec.appendChild(btn); sec.appendChild(cards);
+      bins.appendChild(sec);
+    });
+
+    document.getElementById("returnBtn").disabled = selected === null || loc[selected] === "pool";
+
+    var st = document.getElementById("status");
+    if (checked && summary) {
+      st.textContent = summary;
+    } else if (selected !== null) {
+      st.textContent = "Selected: \u201C" + byId(selected).text + "\u201D Now choose a category button.";
+    } else {
+      var placed = CARDS.length - inPool.length;
+      st.textContent = placed === 0 ? "Select a card to begin."
+        : placed + " of " + CARDS.length + " claims sorted. Select a card to place or move it.";
+    }
+
+    document.getElementById("checkBtn").disabled = inPool.length === CARDS.length;
+
+    if (lastFocus !== null) {
+      var el = document.querySelector('.card[data-id="' + lastFocus + '"]');
+      if (el) el.focus({ preventScroll: true });
+    }
+  }
+
+  document.getElementById("returnBtn").addEventListener("click", function () {
+    if (selected === null) return;
+    var id = selected; loc[id] = "pool"; selected = null; lastFocus = id;
+    checked = false; summary = ""; render();
+  });
+
+  document.getElementById("checkBtn").addEventListener("click", function () {
+    checked = true; selected = null; lastFocus = null;
+    var placed = CARDS.filter(function (c) { return loc[c.id] !== "pool"; });
+    var right = placed.filter(function (c) { return loc[c.id] === c.cat; }).length;
+    var left = CARDS.length - placed.length;
+    var msg;
+    if (right === CARDS.length) {
+      msg = "All " + CARDS.length + " claims are in the right place.";
+    } else {
+      msg = right + " of " + placed.length + " sorted claims are in the right place" +
+        (left ? ", and " + left + " still need a bin." : ". Read the notes, move the cards that missed, and check again.");
+    }
+    summary = msg;
+    render();
+    var r = document.getElementById("result");
+    r.textContent = msg;
+    r.className = right === CARDS.length ? "result done" : "result";
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", init);
+
+  init();
+})();
+</script>
+</body>
+</html>
